@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
+  Box,
   Paper,
   Typography,
   Table,
@@ -9,113 +10,27 @@ import {
   TableHead,
   TableRow,
   TablePagination,
-  Chip,
-  IconButton,
-  Tooltip,
   TextField,
-  InputAdornment,
+  MenuItem,
   Grid,
+  Chip,
+  CircularProgress,
+  Alert,
   FormControl,
   InputLabel,
   Select,
-  MenuItem,
+  IconButton,
+  Tooltip,
+  InputAdornment,
 } from '@mui/material';
-import { IconSearch, IconFilter, IconCalendar } from '@tabler/icons-react';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { fetchEconomicCalendar, getAvailableCurrencies, getImpactLevels } from '../../services/economicCalendarService';
+import { IconSearch, IconRefresh } from '@tabler/icons-react';
 import PageContainer from '../../components/container/PageContainer';
 import Breadcrumb from '../../layouts/full/shared/breadcrumb/Breadcrumb';
 import { BCrumb } from '../../layouts/full/shared/breadcrumb/Breadcrumb';
-
-// Sample economic calendar data
-const sampleEvents = [
-  {
-    id: 1,
-    date: '2024-03-20',
-    time: '08:30',
-    currency: 'USD',
-    event: 'Federal Reserve Interest Rate Decision',
-    impact: 'High',
-    forecast: '5.50%',
-    previous: '5.50%',
-    actual: '5.50%',
-  },
-  {
-    id: 2,
-    date: '2024-03-20',
-    time: '10:00',
-    currency: 'EUR',
-    event: 'ECB President Lagarde Speech',
-    impact: 'Medium',
-    forecast: '-',
-    previous: '-',
-    actual: '-',
-  },
-  {
-    id: 3,
-    date: '2024-03-20',
-    time: '12:30',
-    currency: 'GBP',
-    event: 'CPI m/m',
-    impact: 'High',
-    forecast: '0.5%',
-    previous: '0.4%',
-    actual: '-',
-  },
-  {
-    id: 4,
-    date: '2024-03-20',
-    time: '14:00',
-    currency: 'JPY',
-    event: 'Trade Balance',
-    impact: 'Medium',
-    forecast: '-¥800B',
-    previous: '-¥1,200B',
-    actual: '-',
-  },
-  {
-    id: 5,
-    date: '2024-03-21',
-    time: '09:00',
-    currency: 'AUD',
-    event: 'Employment Change',
-    impact: 'High',
-    forecast: '25K',
-    previous: '20K',
-    actual: '-',
-  },
-  {
-    id: 6,
-    date: '2024-03-21',
-    time: '11:30',
-    currency: 'CAD',
-    event: 'Retail Sales m/m',
-    impact: 'Medium',
-    forecast: '0.3%',
-    previous: '0.2%',
-    actual: '-',
-  },
-  {
-    id: 7,
-    date: '2024-03-21',
-    time: '13:00',
-    currency: 'NZD',
-    event: 'GDP q/q',
-    impact: 'High',
-    forecast: '0.5%',
-    previous: '0.4%',
-    actual: '-',
-  },
-  {
-    id: 8,
-    date: '2024-03-22',
-    time: '08:00',
-    currency: 'CHF',
-    event: 'SNB Monetary Policy Assessment',
-    impact: 'High',
-    forecast: '-',
-    previous: '-',
-    actual: '-',
-  },
-];
 
 const EconomicCalendar = () => {
   const [page, setPage] = useState(0);
@@ -123,17 +38,52 @@ const EconomicCalendar = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currencyFilter, setCurrencyFilter] = useState('all');
   const [impactFilter, setImpactFilter] = useState('all');
-  const [events] = useState(sampleEvents);
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date(new Date().setDate(new Date().getDate() + 7)));
 
-  // Filter events based on search term and filters
+  // Format date for API
+  const formatDateForApi = (date) => {
+    return date.toISOString().split('T')[0];
+  };
+
+  // Fetch economic calendar data
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const formattedStartDate = formatDateForApi(startDate);
+      const formattedEndDate = formatDateForApi(endDate);
+      
+      // Get currencies to filter by
+      const currencies = currencyFilter === 'all' ? [] : [currencyFilter];
+      
+      const data = await fetchEconomicCalendar(formattedStartDate, formattedEndDate, currencies);
+      setEvents(data);
+    } catch (err) {
+      console.error('Error fetching economic calendar data:', err);
+      setError('Failed to load economic calendar data. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch data on component mount and when filters change
+  useEffect(() => {
+    fetchData();
+  }, [startDate, endDate, currencyFilter]);
+
+  // Filter events based on search term and impact filter
   const filteredEvents = events.filter((event) => {
     const matchesSearch = event.event.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          event.currency.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesCurrency = currencyFilter === 'all' || event.currency === currencyFilter;
     const matchesImpact = impactFilter === 'all' || event.impact === impactFilter;
     
-    return matchesSearch && matchesCurrency && matchesImpact;
+    return matchesSearch && matchesImpact;
   });
 
   const handleChangePage = (event, newPage) => {
@@ -160,11 +110,15 @@ const EconomicCalendar = () => {
     setPage(0);
   };
 
-  // Get unique currencies for filter dropdown
-  const currencies = ['all', ...new Set(events.map(event => event.currency))];
+  const handleRefresh = () => {
+    fetchData();
+  };
+
+  // Get available currencies for filter dropdown
+  const currencies = ['all', ...getAvailableCurrencies()];
   
   // Get impact levels for filter dropdown
-  const impactLevels = ['all', 'High', 'Medium', 'Low'];
+  const impactLevels = ['all', ...getImpactLevels()];
 
   // Format date for display
   const formatDate = (dateString) => {
@@ -196,7 +150,7 @@ const EconomicCalendar = () => {
       
       <Paper sx={{ p: 3, mb: 3 }}>
         <Grid container spacing={2} alignItems="center" sx={{ mb: 3 }}>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={3}>
             <TextField
               fullWidth
               placeholder="Search events or currencies..."
@@ -211,7 +165,7 @@ const EconomicCalendar = () => {
               }}
             />
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} md={2}>
             <FormControl fullWidth>
               <InputLabel>Currency</InputLabel>
               <Select
@@ -227,7 +181,7 @@ const EconomicCalendar = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} md={2}>
             <FormControl fullWidth>
               <InputLabel>Impact</InputLabel>
               <Select
@@ -243,97 +197,140 @@ const EconomicCalendar = () => {
               </Select>
             </FormControl>
           </Grid>
+          <Grid item xs={12} md={3}>
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <Grid container spacing={1}>
+                <Grid item xs={6}>
+                  <DatePicker
+                    label="Start Date"
+                    value={startDate}
+                    onChange={setStartDate}
+                    renderInput={(params) => <TextField {...params} fullWidth />}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <DatePicker
+                    label="End Date"
+                    value={endDate}
+                    onChange={setEndDate}
+                    renderInput={(params) => <TextField {...params} fullWidth />}
+                  />
+                </Grid>
+              </Grid>
+            </LocalizationProvider>
+          </Grid>
           <Grid item xs={12} md={2}>
-            <Tooltip title="Filter events">
-              <IconButton color="primary" sx={{ p: 1 }}>
-                <IconFilter size={20} />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Calendar view">
-              <IconButton color="primary" sx={{ p: 1 }}>
-                <IconCalendar size={20} />
-              </IconButton>
-            </Tooltip>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Tooltip title="Refresh data">
+                <IconButton color="primary" onClick={handleRefresh} sx={{ p: 1 }}>
+                  <IconRefresh size={20} />
+                </IconButton>
+              </Tooltip>
+            </Box>
           </Grid>
         </Grid>
 
-        <TableContainer>
-          <Table sx={{ minWidth: 750 }} aria-label="economic calendar table">
-            <TableHead>
-              <TableRow>
-                <TableCell>Date & Time</TableCell>
-                <TableCell>Currency</TableCell>
-                <TableCell>Event</TableCell>
-                <TableCell>Impact</TableCell>
-                <TableCell align="right">Forecast</TableCell>
-                <TableCell align="right">Previous</TableCell>
-                <TableCell align="right">Actual</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredEvents
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((event) => (
-                  <TableRow key={event.id} hover>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        {formatDate(event.date)}
-                      </Typography>
-                      <Typography variant="body2">
-                        {event.time}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" fontWeight="bold">
-                        {event.currency}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2">
-                        {event.event}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={event.impact} 
-                        size="small" 
-                        color={getImpactColor(event.impact)}
-                      />
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography variant="body2">
-                        {event.forecast}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography variant="body2">
-                        {event.previous}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography 
-                        variant="body2" 
-                        fontWeight={event.actual !== '-' ? 'bold' : 'normal'}
-                        color={event.actual !== '-' ? 'primary' : 'text.secondary'}
-                      >
-                        {event.actual}
-                      </Typography>
-                    </TableCell>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <>
+            <TableContainer>
+              <Table sx={{ minWidth: 750 }} aria-label="economic calendar table">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Date & Time</TableCell>
+                    <TableCell>Currency</TableCell>
+                    <TableCell>Event</TableCell>
+                    <TableCell>Impact</TableCell>
+                    <TableCell align="right">Forecast</TableCell>
+                    <TableCell align="right">Previous</TableCell>
+                    <TableCell align="right">Actual</TableCell>
                   </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={filteredEvents.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
+                </TableHead>
+                <TableBody>
+                  {filteredEvents.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} align="center">
+                        <Typography variant="body1" color="text.secondary">
+                          No economic events found for the selected criteria.
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredEvents
+                      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                      .map((event) => (
+                        <TableRow key={event.id} hover>
+                          <TableCell>
+                            <Typography variant="body2" color="text.secondary">
+                              {formatDate(event.date)}
+                            </Typography>
+                            <Typography variant="body2">
+                              {event.time}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" fontWeight="bold">
+                              {event.currency}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2">
+                              {event.event}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Chip 
+                              label={event.impact} 
+                              size="small" 
+                              color={getImpactColor(event.impact)}
+                            />
+                          </TableCell>
+                          <TableCell align="right">
+                            <Typography variant="body2">
+                              {event.forecast}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <Typography variant="body2">
+                              {event.previous}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <Typography 
+                              variant="body2" 
+                              fontWeight={event.actual !== '-' ? 'bold' : 'normal'}
+                              color={event.actual !== '-' ? 'primary' : 'text.secondary'}
+                            >
+                              {event.actual}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={filteredEvents.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          </>
+        )}
       </Paper>
     </PageContainer>
   );
