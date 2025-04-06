@@ -29,8 +29,6 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { fetchEconomicCalendar, getAvailableCurrencies, getImpactLevels } from '../../services/economicCalendarService';
 import { IconSearch, IconRefresh } from '@tabler/icons-react';
 import PageContainer from '../../components/container/PageContainer';
-import Breadcrumb from '../../layouts/full/shared/breadcrumb/Breadcrumb';
-import { BCrumb } from '../../layouts/full/shared/breadcrumb/Breadcrumb';
 
 const EconomicCalendar = () => {
   const [page, setPage] = useState(0);
@@ -146,8 +144,6 @@ const EconomicCalendar = () => {
 
   return (
     <PageContainer title="Economic Calendar" description="View upcoming economic events and their impact on forex markets">
-      <Breadcrumb title="Economic Calendar" items={BCrumb} />
-      
       <Paper sx={{ p: 3, mb: 3 }}>
         <Grid container spacing={2} alignItems="center" sx={{ mb: 3 }}>
           <Grid item xs={12} md={3}>
