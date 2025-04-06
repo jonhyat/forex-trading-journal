@@ -12,8 +12,14 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  Chip,
+  Divider,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
-import { IconPlus, IconTrash, IconEdit } from '@tabler/icons-react';
+import { IconPlus, IconTrash, IconEdit, IconCalendar } from '@tabler/icons-react';
 import PageContainer from '../../components/container/PageContainer';
 
 const WeeklyTradeReview = () => {
@@ -28,6 +34,8 @@ const WeeklyTradeReview = () => {
     exit: '',
     profit: '',
     notes: '',
+    date: new Date().toISOString().split('T')[0],
+    type: 'long', // 'long' or 'short'
   });
 
   const handleImageUpload = (event) => {
@@ -74,6 +82,8 @@ const WeeklyTradeReview = () => {
       exit: '',
       profit: '',
       notes: '',
+      date: new Date().toISOString().split('T')[0],
+      type: 'long',
     });
   };
 
@@ -82,9 +92,58 @@ const WeeklyTradeReview = () => {
     setOpenDialog(true);
   };
 
+  // Calculate total profit/loss
+  const totalProfit = trades.reduce((sum, trade) => {
+    const profit = parseFloat(trade.profit) || 0;
+    return sum + profit;
+  }, 0);
+
+  // Calculate win rate
+  const winningTrades = trades.filter(trade => parseFloat(trade.profit) > 0).length;
+  const winRate = trades.length > 0 ? (winningTrades / trades.length) * 100 : 0;
+
   return (
     <PageContainer title="Weekly Trade Review" description="Review and analyze your weekly trading performance">
       <Grid container spacing={3}>
+        {/* Summary Cards */}
+        <Grid item xs={12} md={4}>
+          <Card sx={{ bgcolor: 'primary.light', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Total Trades
+              </Typography>
+              <Typography variant="h3">
+                {trades.length}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Card sx={{ bgcolor: totalProfit >= 0 ? 'success.light' : 'error.light', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Total Profit/Loss
+              </Typography>
+              <Typography variant="h3">
+                {totalProfit.toFixed(2)}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Card sx={{ bgcolor: 'info.light', color: 'white' }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Win Rate
+              </Typography>
+              <Typography variant="h3">
+                {winRate.toFixed(1)}%
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Add New Trade Button */}
         <Grid item xs={12}>
           <Box display="flex" justifyContent="flex-end" mb={2}>
             <Button
@@ -97,6 +156,8 @@ const WeeklyTradeReview = () => {
             </Button>
           </Box>
         </Grid>
+
+        {/* Trade Cards */}
         {trades.map((trade, index) => (
           <Grid item xs={12} md={6} lg={4} key={index}>
             <Card>
@@ -130,19 +191,40 @@ const WeeklyTradeReview = () => {
                     </IconButton>
                   </Box>
                 </Box>
-                <Typography variant="h6" mt={2}>
-                  {trade.pair}
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Entry: {trade.entry}
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Exit: {trade.exit}
-                </Typography>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
+                  <Typography variant="h6">
+                    {trade.pair}
+                  </Typography>
+                  <Chip 
+                    label={trade.type.toUpperCase()} 
+                    color={trade.type === 'long' ? 'success' : 'error'} 
+                    size="small" 
+                  />
+                </Box>
+                <Box display="flex" alignItems="center" mt={1} mb={1}>
+                  <IconCalendar size={16} style={{ marginRight: '8px' }} />
+                  <Typography variant="body2" color="textSecondary">
+                    {new Date(trade.date).toLocaleDateString()}
+                  </Typography>
+                </Box>
+                <Divider sx={{ my: 1 }} />
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <Typography variant="body2" color="textSecondary">
+                      Entry: {trade.entry}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="body2" color="textSecondary">
+                      Exit: {trade.exit}
+                    </Typography>
+                  </Grid>
+                </Grid>
                 <Typography
-                  variant="body1"
-                  color={trade.profit >= 0 ? 'success.main' : 'error.main'}
+                  variant="h6"
+                  color={parseFloat(trade.profit) >= 0 ? 'success.main' : 'error.main'}
                   fontWeight="bold"
+                  mt={1}
                 >
                   Profit: {trade.profit}
                 </Typography>
@@ -179,38 +261,73 @@ const WeeklyTradeReview = () => {
                 style={{ maxHeight: '200px', objectFit: 'contain' }}
               />
             )}
-            <TextField
-              label="Currency Pair"
-              value={currentTrade.pair}
-              onChange={(e) => setCurrentTrade({ ...currentTrade, pair: e.target.value })}
-              fullWidth
-            />
-            <TextField
-              label="Entry Price"
-              value={currentTrade.entry}
-              onChange={(e) => setCurrentTrade({ ...currentTrade, entry: e.target.value })}
-              fullWidth
-            />
-            <TextField
-              label="Exit Price"
-              value={currentTrade.exit}
-              onChange={(e) => setCurrentTrade({ ...currentTrade, exit: e.target.value })}
-              fullWidth
-            />
-            <TextField
-              label="Profit/Loss"
-              value={currentTrade.profit}
-              onChange={(e) => setCurrentTrade({ ...currentTrade, profit: e.target.value })}
-              fullWidth
-            />
-            <TextField
-              label="Notes"
-              value={currentTrade.notes}
-              onChange={(e) => setCurrentTrade({ ...currentTrade, notes: e.target.value })}
-              multiline
-              rows={4}
-              fullWidth
-            />
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Currency Pair"
+                  value={currentTrade.pair}
+                  onChange={(e) => setCurrentTrade({ ...currentTrade, pair: e.target.value })}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Trade Type</InputLabel>
+                  <Select
+                    value={currentTrade.type}
+                    label="Trade Type"
+                    onChange={(e) => setCurrentTrade({ ...currentTrade, type: e.target.value })}
+                  >
+                    <MenuItem value="long">Long</MenuItem>
+                    <MenuItem value="short">Short</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Date"
+                  type="date"
+                  value={currentTrade.date}
+                  onChange={(e) => setCurrentTrade({ ...currentTrade, date: e.target.value })}
+                  fullWidth
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Entry Price"
+                  value={currentTrade.entry}
+                  onChange={(e) => setCurrentTrade({ ...currentTrade, entry: e.target.value })}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="Exit Price"
+                  value={currentTrade.exit}
+                  onChange={(e) => setCurrentTrade({ ...currentTrade, exit: e.target.value })}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Profit/Loss"
+                  value={currentTrade.profit}
+                  onChange={(e) => setCurrentTrade({ ...currentTrade, profit: e.target.value })}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Notes"
+                  value={currentTrade.notes}
+                  onChange={(e) => setCurrentTrade({ ...currentTrade, notes: e.target.value })}
+                  multiline
+                  rows={4}
+                  fullWidth
+                />
+              </Grid>
+            </Grid>
           </Box>
         </DialogContent>
         <DialogActions>
