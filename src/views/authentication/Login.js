@@ -56,7 +56,7 @@ const Login = () => {
       setLoading(false);
     }
   };
-
+  
   return (
     <PageContainer title="Login" description="Login to your account">
       <Box
@@ -69,7 +69,7 @@ const Login = () => {
       >
         <Paper
           elevation={3}
-          sx={{
+                      sx={{
             p: 4,
             width: '100%',
             maxWidth: 400,
@@ -82,7 +82,7 @@ const Login = () => {
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
               Sign in to continue to your trading journal
-            </Typography>
+                    </Typography>
           </Box>
 
           {error && (

@@ -79,8 +79,8 @@ const Register = () => {
 
   return (
     <PageContainer title="Register" description="Create a new account">
-      <Box
-        sx={{
+    <Box
+      sx={{
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
@@ -99,10 +99,10 @@ const Register = () => {
           <Box sx={{ mb: 3, textAlign: 'center' }}>
             <Typography variant="h4" fontWeight="bold" color="primary">
               Create an Account
-            </Typography>
+                </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
               Join our trading community and start tracking your performance
-            </Typography>
+                  </Typography>
           </Box>
 
           {error && (
@@ -235,9 +235,9 @@ const Register = () => {
             </Stack>
           </form>
         </Paper>
-      </Box>
-    </PageContainer>
-  );
+    </Box>
+  </PageContainer>
+);
 };
 
 export default Register;

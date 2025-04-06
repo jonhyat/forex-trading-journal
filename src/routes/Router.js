@@ -8,6 +8,7 @@ import ProtectedRoute from '../components/auth/ProtectedRoute';
 // Authentication Pages
 const Login = lazy(() => import('../views/authentication/Login'));
 const Register = lazy(() => import('../views/authentication/Register'));
+const Error = lazy(() => import('../views/authentication/Error'));
 
 // Admin Pages
 const AdminDashboard = lazy(() => import('../views/admin/AdminDashboard'));
@@ -16,6 +17,7 @@ const AdminDashboard = lazy(() => import('../views/admin/AdminDashboard'));
 const Dashboard = lazy(() => import('../views/dashboard/Dashboard'));
 const WeeklyTradeReview = lazy(() => import('../views/trading/WeeklyTradeReview'));
 const DailyTradeReview = lazy(() => import('../views/trading/DailyTradeReview'));
+const EconomicCalendar = lazy(() => import('../views/trading/EconomicCalendar'));
 const TradingInsights = lazy(() => import('../views/trading/TradingInsights'));
 
 // UI Pages
@@ -27,14 +29,20 @@ const Router = () => {
   return (
     <Routes>
       <Route path="/" element={<BlankLayout />}>
-        <Route path="/auth/login" element={
+        <Route index element={<Navigate to="/auth/login" />} />
+        <Route path="auth/login" element={
           <Suspense fallback={<CircularProgress />}>
             <Login />
           </Suspense>
         } />
-        <Route path="/auth/register" element={
+        <Route path="auth/register" element={
           <Suspense fallback={<CircularProgress />}>
             <Register />
+          </Suspense>
+        } />
+        <Route path="auth/error" element={
+          <Suspense fallback={<CircularProgress />}>
+            <Error />
           </Suspense>
         } />
       </Route>
@@ -44,6 +52,7 @@ const Router = () => {
           <FullLayout />
         </ProtectedRoute>
       }>
+        <Route index element={<Navigate to="/dashboard" />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={
           <Suspense fallback={<CircularProgress />}>
@@ -63,6 +72,11 @@ const Router = () => {
         <Route path="/weekly-review" element={
           <Suspense fallback={<CircularProgress />}>
             <WeeklyTradeReview />
+          </Suspense>
+        } />
+        <Route path="/economic-calendar" element={
+          <Suspense fallback={<CircularProgress />}>
+            <EconomicCalendar />
           </Suspense>
         } />
         <Route path="/ui/typography" element={
