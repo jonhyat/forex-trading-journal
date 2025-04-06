@@ -1,5 +1,5 @@
 import {
-  IconAperture, IconCopy, IconLayoutDashboard, IconLogin, IconMoodHappy, IconTypography, IconUserPlus, IconChartBar
+  IconAperture, IconCopy, IconLayoutDashboard, IconLogin, IconMoodHappy, IconTypography, IconUserPlus, IconChartBar, IconClock
 } from '@tabler/icons-react';
 
 import { uniqueId } from 'lodash';
@@ -19,6 +19,12 @@ const Menuitems = [
   {
     navlabel: true,
     subheader: 'Trading',
+  },
+  {
+    id: uniqueId(),
+    title: 'Daily Review',
+    icon: IconClock,
+    href: '/daily-review',
   },
   {
     id: uniqueId(),
