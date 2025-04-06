@@ -127,7 +127,7 @@ const DailyTradeReview = () => {
           <Card sx={{ bgcolor: 'primary.light', color: 'white' }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Today's Trades
+                Today&apos;s Trades
               </Typography>
               <Typography variant="h3">
                 {trades.length}
