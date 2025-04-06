@@ -1,5 +1,5 @@
 import {
-  IconAperture, IconCopy, IconLayoutDashboard, IconLogin, IconMoodHappy, IconTypography, IconUserPlus, IconChartBar, IconClock
+  IconAperture, IconCopy, IconLayoutDashboard, IconLogin, IconMoodHappy, IconTypography, IconUserPlus, IconChartBar, IconClock, IconCalendar
 } from '@tabler/icons-react';
 
 import { uniqueId } from 'lodash';
@@ -31,6 +31,12 @@ const Menuitems = [
     title: 'Weekly Review',
     icon: IconChartBar,
     href: '/weekly-review',
+  },
+  {
+    id: uniqueId(),
+    title: 'Economic Calendar',
+    icon: IconCalendar,
+    href: '/economic-calendar',
   },
   {
     id: uniqueId(),
