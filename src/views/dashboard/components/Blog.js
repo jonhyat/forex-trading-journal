@@ -1,13 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { CardContent, Typography, Grid, Rating, Tooltip, Fab } from '@mui/material';
-import img1 from 'src/assets/images/products/s4.jpg';
-import img2 from 'src/assets/images/products/s5.jpg';
-import img3 from 'src/assets/images/products/s7.jpg';
-import img4 from 'src/assets/images/products/s11.jpg';
-import { Stack } from '@mui/system';
 import { IconChartBar } from '@tabler/icons-react';
-import BlankCard from '../../../components/shared/BlankCard';
+import img1 from '../../../assets/images/products/s4.jpg';
+import img2 from '../../../assets/images/products/s5.jpg';
+import img3 from '../../../assets/images/products/s7.jpg';
+import img4 from '../../../assets/images/products/s11.jpg';
+import DashboardCard from '../../../components/shared/DashboardCard';
+import { Stack } from '@mui/system';
 
 const tradingInsights = [
     {
@@ -49,7 +49,7 @@ const Blog = () => {
         <Grid container spacing={3}>
             {tradingInsights.map((insight, index) => (
                 <Grid item sm={12} md={4} lg={3} key={index}>
-                    <BlankCard>
+                    <DashboardCard>
                         <Typography component={Link} to="/">
                             <img src={insight.photo} alt="img" width="100%" />
                         </Typography>
@@ -74,7 +74,7 @@ const Blog = () => {
                                 <Rating name="read-only" size="small" value={insight.rating} readOnly />
                             </Stack>
                         </CardContent>
-                    </BlankCard>
+                    </DashboardCard>
                 </Grid>
             ))}
         </Grid>

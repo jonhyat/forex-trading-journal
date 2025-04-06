@@ -1,6 +1,6 @@
 import React from 'react';
-import { Paper, Box, Grid } from '@mui/material';
-import PageContainer from 'src/components/container/PageContainer';
+import { Grid, Box, Card, Stack, Typography } from '@mui/material';
+import PageContainer from '../../components/container/PageContainer';
 import DashboardCard from '../../components/shared/DashboardCard';
 import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
 
